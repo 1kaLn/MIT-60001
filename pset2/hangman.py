@@ -1,5 +1,5 @@
 # Problem Set 2, hangman.py
-# Name: 
+# Name: Guilherme Kalani
 # Collaborators:
 # Time spent:
 
