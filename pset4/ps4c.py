@@ -3,7 +3,7 @@
 # Collaborators:
 # Time Spent: x:xx
 
-import string, random
+import string
 from ps4a import get_permutations
 
 ### HELPER CODE ###
