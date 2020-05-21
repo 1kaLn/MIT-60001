@@ -265,7 +265,7 @@ class CiphertextMessage(Message):
         self.message_text = original_message_text
 
         return (best_shift, self.apply_shift(26-best_shift))
-            
+
 
 if __name__ == '__main__':
 

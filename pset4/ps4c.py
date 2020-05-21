@@ -1,9 +1,9 @@
 # Problem Set 4C
-# Name: <your name here>
+# Name: Guilherme Kalani
 # Collaborators:
 # Time Spent: x:xx
 
-import string
+import string, random
 from ps4a import get_permutations
 
 ### HELPER CODE ###
@@ -70,16 +70,19 @@ class SubMessage(object):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
-    
+        
+        self.message_text = text
+        self.valid_words = load_words(WORDLIST_FILENAME)
+
     def get_message_text(self):
         '''
         Used to safely access self.message_text outside of the class
         
         Returns: self.message_text
         '''
-        pass #delete this line and replace with your code here
-
+        
+        return self.message_text
+            
     def get_valid_words(self):
         '''
         Used to safely access a copy of self.valid_words outside of the class.
@@ -87,8 +90,11 @@ class SubMessage(object):
         
         Returns: a COPY of self.valid_words
         '''
-        pass #delete this line and replace with your code here
-                
+        
+        valid_words_copy = self.valid_words.copy()
+
+        return valid_words_copy
+
     def build_transpose_dict(self, vowels_permutation):
         '''
         vowels_permutation (string): a string containing a permutation of vowels (a, e, i, o, u)
@@ -109,8 +115,23 @@ class SubMessage(object):
                  another letter (string). 
         '''
         
-        pass #delete this line and replace with your code here
-    
+        letters_mapping_lower = dict((key, key) for key in string.ascii_lowercase)
+        vowels_mapping = dict((key, key) for key in VOWELS_LOWER)
+        vowels_perm_list = list(vowels_permutation.lower())
+        
+        index = 0
+        for letter in vowels_mapping.keys():
+            vowels_mapping.update({ letter: vowels_perm_list[index] })
+            index += 1
+
+        for letter in vowels_mapping.keys():
+            letters_mapping_lower.update({ letter: vowels_mapping.get(letter) })
+
+        letters_mapping_upper = dict((k.upper(), v.upper()) for k, v in letters_mapping_lower.items() )
+             
+        return { **letters_mapping_upper, **letters_mapping_lower }
+            
+         
     def apply_transpose(self, transpose_dict):
         '''
         transpose_dict (dict): a transpose dictionary
@@ -118,8 +139,14 @@ class SubMessage(object):
         Returns: an encrypted version of the message text, based 
         on the dictionary
         '''
-        
-        pass #delete this line and replace with your code here
+       
+        mapped_message = list(self.message_text)
+
+        for letter in range(len(mapped_message)):
+            if mapped_message[letter] in transpose_dict:
+                mapped_message[letter] = transpose_dict.get(mapped_message[letter])
+
+        return "".join(mapped_message)
         
 class EncryptedSubMessage(SubMessage):
     def __init__(self, text):
@@ -132,7 +159,9 @@ class EncryptedSubMessage(SubMessage):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
+        
+        self.message_text = text
+        self.valid_words = load_words(WORDLIST_FILENAME)
 
     def decrypt_message(self):
         '''
@@ -152,8 +181,25 @@ class EncryptedSubMessage(SubMessage):
         
         Hint: use your function from Part 4A
         '''
-        pass #delete this line and replace with your code here
-    
+
+        og_message_text = self.message_text
+        perms = get_permutations(VOWELS_LOWER)
+        perm_word_counter = dict((k, 0) for k in perms)
+
+        for perm in perms:
+            mapped_dict = self.build_transpose_dict(perm)
+            self.message_text = self.apply_transpose(mapped_dict)
+            message_split = self.message_text.split(' ')
+            for word in message_split:
+                if is_word(self.valid_words, word):
+                    perm_word_counter[perm] = perm_word_counter.get(perm, 0) + 1
+
+            self.message_text = og_message_text
+
+        best_perm = max(perm_word_counter, key=perm_word_counter.get)
+        best_map = self.build_transpose_dict(best_perm)
+
+        return self.apply_transpose(best_map)
 
 if __name__ == '__main__':
 
@@ -166,5 +212,21 @@ if __name__ == '__main__':
     print("Actual encryption:", message.apply_transpose(enc_dict))
     enc_message = EncryptedSubMessage(message.apply_transpose(enc_dict))
     print("Decrypted message:", enc_message.decrypt_message())
-     
-    #TODO: WRITE YOUR TEST CASES HERE
+    
+    message_two = SubMessage("How are you?")
+    permutation_two = "iuoae"
+    enc_dict_two = message_two.build_transpose_dict(permutation_two)
+    enc_message_two = EncryptedSubMessage(message_two.apply_transpose(enc_dict_two))
+    print("Original message:", message_two.get_message_text(), "Permutation:", permutation_two)
+    print("Expected encryption:", "Haw iru yae?")
+    print("Actual encryption:", message_two.apply_transpose(enc_dict_two))
+    print("Decrypted message:", enc_message_two.decrypt_message())
+
+    message_three = SubMessage("How old are you, friend?")
+    permutation_three = "oaeui"
+    enc_dict_three = message_three.build_transpose_dict(permutation_three)
+    enc_message_three = EncryptedSubMessage(message_three.apply_transpose(enc_dict_three))
+    print("Original message:", message_three.get_message_text(), "Permutation:", permutation_three)
+    print("Expected encryption:", "Huw uld ora yui, freand?")
+    print("Actual encryption:", message_three.apply_transpose(enc_dict_three))
+    print("Decrypted message:", enc_message_three.decrypt_message())
